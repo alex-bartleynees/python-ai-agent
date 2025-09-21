@@ -1,4 +1,5 @@
 import os
+from functions.is_subpath import is_subpath
 
 
 def get_files_info(working_directory, directory="."):
@@ -21,9 +22,3 @@ def get_files_info(working_directory, directory="."):
         return f"Error: {str(e)}"
 
     return directory_contents.strip()
-
-
-def is_subpath(path, base):
-    path = os.path.abspath(path)
-    base = os.path.abspath(base)
-    return os.path.commonpath([base]) == os.path.commonpath([path, base])
