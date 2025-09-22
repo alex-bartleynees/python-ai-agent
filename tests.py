@@ -33,6 +33,11 @@ class TestGetFilesContent(unittest.TestCase):
         print(result)
         self.assertIn("def main():", result)
 
+    def test_calculator_pkg(self):
+        result = get_files_content.get_file_content("calculator", "pkg/calculator.py")
+        print(result)
+        self.assertIn("class Calculator:", result)
+
     def test_calculator_pkg_render_py(self):
         result = get_files_content.get_file_content("calculator", "pkg/render.py")
         print(result)

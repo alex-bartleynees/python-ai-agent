@@ -1,6 +1,8 @@
 import os
 from functions.is_subpath import is_subpath
 
+MAX_CHARS = 10000
+
 
 def get_file_content(working_directory, file_path):
     full_path = os.path.join(working_directory, file_path)
@@ -11,6 +13,11 @@ def get_file_content(working_directory, file_path):
     try:
         with open(full_path, "r") as file:
             content = file.read()
+            if len(content) > MAX_CHARS:
+                content = (
+                    content[:MAX_CHARS]
+                    + f"...File {file_path} truncated at {MAX_CHARS} characters"
+                )
         return content
     except Exception as e:
         return f"Error: {str(e)}"
