@@ -59,5 +59,74 @@ class TestGetFilesContent(unittest.TestCase):
         self.assertEqual(result, "Error: non_existent_file.py does not exist")
 
 
+class TestWriteFile(unittest.TestCase):
+    def test_write_file_success(self):
+        from functions.write_file import write_file
+
+        result = write_file("calculator", "lorem.txt", "wait, this isn't lorem ipsum")
+        print(result)
+        self.assertIn('Successfully wrote to "lorem.txt"', result)
+
+    def test_write_file_outside_working_directory(self):
+        from functions.write_file import write_file
+
+        result = write_file("calculator", "../outside.txt", "This should fail.")
+        print(result)
+        self.assertEqual(
+            result,
+            "Error: Cannot read ../outside.txt as it is outside the permitted working directory",
+        )
+
+    def test_write_file_invalid_path(self):
+        from functions.write_file import write_file
+
+        result = write_file("calculator", "/invalid_path/test.txt", "This should fail.")
+        print(result)
+        self.assertIn("Error:", result)
+
+    def test_write_file_success_subdir(self):
+        from functions.write_file import write_file
+
+        result = write_file(
+            "calculator", "pkg/morelorem.txt", "lorem ipsum dolor sit amet"
+        )
+        print(result)
+        self.assertIn('Successfully wrote to "pkg/morelorem.txt"', result)
+
+class TestRunPythonFile(unittest.TestCase):
+    def test_run_python_file_success(self):
+        from functions.run_python_file import run_python_file
+        result = run_python_file("calculator", "main.py", ["2", "+", "2"])
+        print(result)
+        self.assertIn('STDOUT:', result)    
+    def test_run_python_file_success_without_command(self):
+        from functions.run_python_file import run_python_file
+        result = run_python_file("calculator", "main.py")
+        print(result)
+        self.assertIn('STDOUT:', result)
+    def test_run_python_file_outside_working_directory(self):
+        from functions.run_python_file import run_python_file
+        result = run_python_file("calculator", "../main.py")
+        print(result)
+        self.assertEqual(
+            result,
+            'Error: Cannot execute "../main.py" as it is outside the permitted working directory',
+        )
+    def test_run_python_file_non_existent(self):
+        from functions.run_python_file import run_python_file
+        result = run_python_file("calculator", "nonexistent.py")
+        print(result)
+        self.assertEqual(result, 'Error: File "nonexistent.py" not found')
+    def test_run_python_file_not_a_python_file(self):
+        from functions.run_python_file import run_python_file
+        result = run_python_file("calculator", "lorem.txt")
+        print(result)
+        self.assertEqual(result, "Error: lorem.txt is not a Python file.")
+    def test_runs_tests(self):
+        from functions.run_python_file import run_python_file
+        result = run_python_file("calculator", "tests.py")
+        print(result)
+        
+
 if __name__ == "__main__":
     unittest.main()
