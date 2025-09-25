@@ -1,5 +1,6 @@
 import os
 import subprocess
+from google.genai import types
 
 from functions.is_subpath import is_subpath
 
@@ -34,3 +35,23 @@ def run_python_file(working_directory, file_path, args=[]):
         return f"Error: Process exited with code {str(e.returncode)}"
     except Exception as e:
         return f"Error: exceuting Python file: {str(e)}"
+
+
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="Runs a specified Python file within the working directory and returns its output or any errors encountered during execution.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="The path to the file to get the contents of, relative to the working directory. If a path to a file is not specified, produces an error.",
+            ),
+            "args": types.Schema(
+                type=types.Type.ARRAY,
+                items=types.Schema(type=types.Type.STRING),
+                description="A list of arguments to pass to the Python file when executing it.",
+            ),
+        },
+    ),
+)

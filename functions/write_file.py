@@ -1,5 +1,5 @@
 import os
-
+from google.genai import types
 from functions.is_subpath import is_subpath
 
 
@@ -18,3 +18,25 @@ def write_file(working_directory, file_path, content):
     except Exception as e:
         return f"Error: {str(e)}"
 
+
+schema_write_file = types.FunctionDeclaration(
+    name="write_file",
+    description="Writes content to a specified file within the working directory, creating any necessary directories.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "write_file": types.Schema(
+                type=types.Type.STRING,
+                description="The path to the file to write the contents to, relative to the working directory. If a path to a file is not specified, produces an error.",
+            ),
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="The path to the file to write the contents to, relative to the working directory. If a path to a file is not specified, produces an error.",
+            ),
+            "content": types.Schema(
+                type=types.Type.STRING,
+                description="The content to write to the specified file.",
+            ),
+        },
+    ),
+)
