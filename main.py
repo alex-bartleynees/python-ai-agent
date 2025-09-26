@@ -7,6 +7,7 @@ from functions.get_files_info import schema_get_files_info
 from functions.get_files_content import schema_get_file_content
 from functions.run_python_file import schema_run_python_file
 from functions.write_file import schema_write_file
+from functions.call_function import call_function
 
 
 system_prompt = """
@@ -41,37 +42,62 @@ def main():
         print("Please provide a prompt as a command line argument.")
         sys.exit(1)
 
-    user_prompt = " ".join(args)
-
     verbose_mode = ""
-    if len(args) > 1:
-        verbose_mode = args[1]
+    if "--verbose" in args:
+        verbose_mode = "--verbose"
+        args = [arg for arg in args if arg != "--verbose"]
 
-        if verbose_mode != "--verbose":
-            print("Invalid second argument. Use --verbose for verbose mode.")
-            sys.exit(1)
+    user_prompt = " ".join(args)
 
     messages = [types.Content(role="user", parts=[types.Part(text=user_prompt)])]
 
     client = genai.Client(api_key=api_key)
-    response = client.models.generate_content(
-        model="gemini-2.0-flash-001",
-        contents=messages,
-        config=types.GenerateContentConfig(
-            system_instruction=system_prompt, tools=[available_functions]
-        ),
-    )
 
-    if verbose_mode:
-        print("User prompt:", user_prompt)
-        print("Prompt tokens:", response.usage_metadata.prompt_token_count)
-        print("Response tokens:", response.usage_metadata.candidates_token_count)
+    while len(messages) < 20:
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.0-flash-001",
+                contents=messages,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt, tools=[available_functions]
+                ),
+            )
 
-    if response.function_calls:
-        for function_call in response.function_calls:
-            print(f"Calling function: {function_call.name}({function_call.args})")
-    else:
-        print(response.text)
+            for candidate in response.candidates:
+                messages.append(candidate.content)
+
+            if verbose_mode:
+                print("User prompt:", user_prompt)
+                print("Prompt tokens:", response.usage_metadata.prompt_token_count)
+                print(
+                    "Response tokens:", response.usage_metadata.candidates_token_count
+                )
+
+            if response.function_calls:
+                for function_call in response.function_calls:
+                    function_response = call_function(
+                        function_call, verbose=bool(verbose_mode)
+                    )
+                    response_content = function_response.parts[
+                        0
+                    ].function_response.response
+                    if response_content:
+                        messages.append(
+                            types.Content(
+                                role="user",
+                                parts=[types.Part(text=str(response_content))],
+                            )
+                        )
+                        if verbose_mode:
+                            print(f"-> {response_content}")
+                    else:
+                        raise ValueError("Function response is missing or malformed.")
+            elif response.text:
+                print(response.text)
+                break
+        except Exception as e:
+            print(f"Error occurred: {e}")
+            break
 
 
 if __name__ == "__main__":
